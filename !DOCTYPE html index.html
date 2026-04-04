@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>求解二次方程</title>
+</head>
+<body>
+    <script>
+        // (1) 使用prompt获取系数
+        let a = parseFloat(prompt("请输入二次项系数 a:"));
+        let b = parseFloat(prompt("请输入一次项系数 b:"));
+        let c = parseFloat(prompt("请输入常数项 c:"));
+
+        // (2) 使用parseFloat转换为数字（已完成）
+
+        // (3) 计算判别式 delta
+        let delta = b * b - 4 * a * c;
+
+        // (4) 计算两个根
+        let x1 = (-b + Math.sqrt(delta)) / (2 * a);
+        let x2 = (-b - Math.sqrt(delta)) / (2 * a);
+
+        // (5) 使用alert告知用户结果
+        alert(`方程的解为：\nx1 = ${x1}\nx2 = ${x2}`);
+
+        // (6) 使用console.log输出同样结果
+        console.log("方程的解为：");
+        console.log("x1 =", x1);
+        console.log("x2 =", x2);
+    </script>
+</body>
+</html>
