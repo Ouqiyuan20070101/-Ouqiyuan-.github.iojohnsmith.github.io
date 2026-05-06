@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D 汉诺塔游戏</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .game-container {
+      max-width: 900px;
+      width: 100%;
+      background: rgba(255,255,255,0.95);
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+      text-align: center;
+      background: linear-gradient(135deg, #1e3c72, #2b4c7c);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 1.5rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .buttons button {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #1e3c72;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 0 0.3rem;
+    }
+
+    .warning, .victory {
+      text-align: center;
+      padding: 1rem;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .victory {
+      background: #e8f5e9;
+      color: #27ae60;
+    }
+
+    .warning {
+      background: #fff3e0;
+      color: #e67e22;
+    }
+
+    .hidden { display: none; }
+
+    .hanoi-board {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      height: 350px;
+    }
+
+    .peg {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .peg-base {
+      width: 180px;
+      height: 20px;
+      background: #8d6e63;
+      border-radius: 10px;
+    }
+
+    .peg-pole {
+      width: 12px;
+      height: 300px;
+      background: #bdc3c7;
+    }
+
+    .disk-stack {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+    }
+
+    .disk {
+      height: 30px;
+      border-radius: 15px;
+      margin: 2px 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: 0.3s;
+    }
+
+    .disk:hover {
+      transform: translateY(-3px);
+    }
+
+    @keyframes shakeWarning {
+      0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}
+    }
+    .shake{animation:shakeWarning 0.5s;}
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🏯 3D 汉诺塔游戏</h1>
+    <div class="controls">
+      <div class="disk-control">
+        <label>磁盘数量 (3-8):</label>
+        <input type="number" id="diskCount" min="3" max="8" value="3">
+      </div>
+      <div class="stats">
+        步数: <span id="moveCounter">0</span>
+      </div>
+      <div class="buttons">
+        <button id="resetBtn">重置</button>
+        <button id="autoSolveBtn">自动解谜</button>
+      </div>
+    </div>
+    <div id="warning" class="warning hidden">不能把大的放小的上面！</div>
+    <div id="victory" class="victory hidden">🎉 恭喜你赢了！</div>
+    <div class="hanoi-board">
+      <div class="peg" data-peg="0"><div class="peg-base"></div><div class="peg-pole"></div><div class="disk-stack"></div></div>
+      <div class="peg" data-peg="1"><div class="peg-base"></div><div class="peg-pole"></div><div class="disk-stack"></div></div>
+      <div class="peg" data-peg="2"><div class="peg-base"></div><div class="peg-pole"></div><div class="disk-stack"></div></div>
+    </div>
+  </div>
+
+  <script>
+    const game = {
+      disks:3, pegs:[[],[],[]], moves:0,
+      selected:null, auto:false, win:false
+    };
+    const cnt = document.getElementById('moveCounter');
+    const warn = document.getElementById('warning');
+    const victory = document.getElementById('victory');
+    const stacks = document.querySelectorAll('.disk-stack');
+    const pegs = document.querySelectorAll('.peg');
+
+    function init(n=3){
+      game.pegs=[[],[],[]]; game.moves=0; game.selected=null; game.win=false; game.auto=false;
+      cnt.textContent=0; warn.classList.add('hidden'); victory.classList.add('hidden');
+      for(let i=n;i>=1;i--)game.pegs[0].push(i);
+      render();
+    }
+
+    function render(){
+      stacks.forEach(s=>s.innerHTML='');
+      game.pegs.forEach((p,i)=>{
+        p.forEach(d=>{
+          let el=document.createElement('div');
+          el.className='disk';
+          el.style.width=60+d*15+'px';
+          const c=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#3498db','#9b59b6','#95a5a6','#34495e'];
+          el.style.background=c[d-1];
+          stacks[i].appendChild(el);
+        })
+      })
+    }
+
+    function valid(f,t){
+      let fp=game.pegs[f], tp=game.pegs[t];
+      if(fp.length===0)return false;
+      let top=fp[fp.length-1];
+      if(tp.length===0)return true;
+      return top<tp[tp.length-1];
+    }
+
+    function move(f,t){
+      if(!valid(f,t)){warn.classList.remove('hidden');warn.classList.add('shake');setTimeout(()=>{warn.classList.add('hidden');warn.classList.remove('shake')},1000);return false;}
+      let d=game.pegs[f].pop();
+      game.pegs[t].push(d);
+      game.moves++; cnt.textContent=game.moves;
+      render(); checkWin();
+      return true;
+    }
+
+    function checkWin(){
+      if(game.pegs[2].length===game.disks){
+        game.win=true; victory.classList.remove('hidden');
+      }
+    }
+
+    async function auto(n,f,t,a){
+      if(!game.auto)return;
+      if(n===1){await new Promise(r=>setTimeout(r,700));move(f,t);return;}
+      await auto(n-1,f,a,t);
+      await new Promise(r=>setTimeout(r,700));
+      move(f,t);
+      await auto(n-1,a,t,f);
+    }
+
+    pegs.forEach((el,i)=>{
+      el.addEventListener('click',()=>{
+        if(game.auto||game.win)return;
+        if(game.selected===null){
+          if(game.pegs[i].length===0){warn.classList.remove('hidden');setTimeout(()=>warn.classList.add('hidden'),1000);return;}
+          game.selected=i;
+        }else{
+          move(game.selected,i);
+          game.selected=null;
+        }
+      })
+    });
+
+    document.getElementById('resetBtn').onclick=()=>init(game.disks);
+    document.getElementById('autoSolveBtn').onclick=async()=>{
+      game.auto=true;
+      await auto(game.disks,0,2,1);
+      game.auto=false;
+    }
+    document.getElementById('diskCount').onchange=e=>{
+      let v=parseInt(e.target.value);
+      if(v<3)v=3;if(v>8)v=8;e.target.value=v;
+      game.disks=v; init(v);
+    }
+    init(3);
+  </script>
+</body>
+</html>
